@@ -1,4 +1,4 @@
-# 3/29/20 @ 10:20 a.m.
+# 3/29/20 @ 1:26 p.m.
 
 #Helper Functions
 import operator as op
@@ -168,9 +168,9 @@ map_tc = [((square, [-2, -1, 0, 1, 2]), [4, 1, 0, 1, 4]),
 filter_tc = [((is_prime, [1, 2, 3, 4, 5, 6, 7, 8, 9, 100, 101, 102, 103]), [2, 3, 5, 7, 101, 103]),
              ((is_thodd, [1, 2, 3, 4, 5, 6, 7, 8, 9]), [1, 4, 7]),
              ((is_prime, []), [])]
-fold_tc = [((sum_two, [1, 2, 3, 4, 5, 6, 7, 8, 9]), 45),
-           ((longer, ['franklin', 'curtis', 'mason', 'junior']), 'franklin'),
-           ((longer, ['', '', '']), '')]
+foldLeft_tc = [((0, sum_two, [1, 2, 3, 4, 5, 6, 7, 8, 9]), 45),
+           (('', longer, ['franklin', 'curtis', 'mason', 'junior']), 'franklin'),
+           (('', longer, ['', '', '']), '')]
 repeat_tc = [((sqrt, 12, 3), 1.3642616018213658),
              ((sqrt, 12, 12), 1.0006068507219845)]
 factorial_tc = [(1, 1), (5, 120)]
@@ -209,7 +209,7 @@ first_greater_func_unit = Unit(quad_and_cubic, "greater func with a_quad and a_c
 second_greater_func_unit = Unit(quad_and_rat, "greater_func with a_quad and rat_func", second_greater_func_tc, False, False, approx_eq)
 map_unit = Unit(map, "map", map_tc, True, False, eq_comp)
 filter_unit = Unit(filter, "filter", filter_tc, True, False, eq_comp)
-fold_unit = Unit(fold, "fold", fold_tc, True, False, eq_comp)
+fold_unit = Unit(foldLeft, "fold", foldLeft_tc, True, False, eq_comp)
 repeat_unit = Unit(repeat, "repeat", repeat_tc, True, False, approx_eq)
 factorial_unit = Unit(factorial, "factorial", factorial_tc, False, False, eq_comp)
 harmonic_series_unit = Unit(harmonic_series, "harmonic series", harmonic_series_tc, False, False, approx_eq)
