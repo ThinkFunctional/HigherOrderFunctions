@@ -1,0 +1,236 @@
+# 3/29/20 @ 10:20 p.m.
+
+#Helper Functions
+import operator as op
+
+eq_comp = op.__eq__
+is_comp = op.is_
+
+def elems_comp(a_list, b_list):
+    # Return true if every element of a is an element of b and vice versa, False otherwise
+    if not isinstance(a_list, list) or not isinstance(b_list, list):
+        return False
+    for elem in a_list:
+        if elem not in b_list:
+            return False
+    for elem in b_list:
+        if elem not in b_list:
+            return False
+    return True
+
+def order_comp(a_list, b_list):
+    for i in range(len(a_list)):
+        try:
+            if a_list[i] != b_list[i]:
+                return False
+        except:
+            return False
+    return True
+
+def eq_not_is(an_obj, another_obj):
+    return (an_obj == another_obj) and not(an_obj is another_obj)
+
+def approx_eq(expected, actual):
+    if isinstance(expected, (int, float, complex)) and not isinstance(expected, bool):
+        return abs(expected - actual) < 0.000001
+    return False
+
+def build_arg_str(args, is_poly):
+    arg_str = ""
+    if is_poly:
+        for arg in args:
+            if callable(arg):
+                arg_str = arg_str + arg.__name__ + " "
+            else:
+                if isinstance(arg, str):
+                    arg_str = arg_str + "'" + arg + "'" + " "
+                else:
+                    arg_str = arg_str + str(arg) + " "
+    else:
+        if callable(args):
+            arg_str = args.__name__
+        else:
+            if isinstance(args, str):
+                arg_str = "'" + args + "'"
+            else:
+                arg_str = str(args)
+    return arg_str.strip()
+
+class Unit():
+
+    def __init__(self, func, name, cases, is_polyadic, is_mutator, test_type):
+        # If the function is polyadic, we need to * the input so that it unpacks.
+        # If the function is a mutator, we don't ask for its return value.
+        # Instead we compare the input after the function is called to the correct mutated value.
+        # Six test types are required:
+        # 1. Verify equality of content: eq_comp
+        # 2. Verify identity: is_comp
+        # 3. Verify content equality and non-identity: eq_not_is
+        # 4. Verify that two lists have the same elements, order irrelevant: elems_comp
+        # 5. Verify that two lists have same elements in same order: order_comp
+        # 6. Verify that two floats are close enough: approx_eq
+        self.func = func
+        self.name = name
+        self.cases = cases
+        self.is_polyadic = is_polyadic
+        self.is_mutator = is_mutator
+        self.test_type = test_type
+        self.score = 0
+
+    def add_test(self, new_test):
+        self.cases.append(new_test)
+
+class UnitTest():
+
+    def __init__(self, name, units):
+        self.name = name
+        self.units = units
+        self.score = 0
+        self.num_tests = 0
+
+    def run_test(self):
+        test_file = open("report.txt", "w")
+        test_file.write(self.name + "\n")
+        total_score = 0
+        pts_lost_dict = {}
+        for unit in self.units:
+            print(unit.name)
+            pts_lost_dict[unit.name] = 0
+            test_file.write("\nFunction: " + unit.name + "\n")
+            for case in unit.cases:
+                self.num_tests += 1
+                arg = case[0]
+                expected_value = case[1]
+                arg_str = build_arg_str(arg, unit.is_polyadic)
+                test_file.write("Argument(s): " + arg_str + "  ")
+                try:
+                    if unit.is_polyadic:
+                        actual_value = unit.func(*arg)
+                    else:
+                        actual_value = unit.func(arg) 
+                except:
+                    test_file.write("Crash! No point!\n")
+                    pts_lost_dict[unit.name] += 1
+                else:
+                    if not unit.is_mutator:
+                        if unit.test_type(expected_value, actual_value):
+                            test_file.write("  Return value correct! +1\n")
+                            unit.score += 1
+                        else:
+                            test_file.write("  Incorrect return value! No point!\n")
+                            pts_lost_dict[unit.name] += 1
+                    else:
+                        if unit.is_polyadic:
+                            mutated_value = arg[0]
+                        else:
+                            mutated_value = arg
+                        if unit.test_type(expected_value, mutated_value):
+                            test_file.write("  Mutated value correct! +1\n")
+                            unit.score += 1
+                        else:
+                            test_file.write("  Incorrect mutated value! No point!\n")
+                            pts_lost_dict[unit.name] += 1
+
+            total_score += unit.score
+
+        self.score = total_score
+        test_file.write("\nSummary:")
+        if self.score < self.num_tests:
+            for name in pts_lost_dict:
+                pts_lost = pts_lost_dict[name]
+                if pts_lost > 0:
+                    test_file.write("\nFunction \"" + name + "\", points lost " + str(pts_lost) + ".")
+        else:
+            test_file.write("\nPerfection!")
+        test_file.write("\nFinal Score: " + str(self.score) + "/" + str(self.num_tests))
+
+
+# Function List (13 total)
+# map, filter, fold, repeat, factorial, harmonic_series
+# find_min, find_max, flatten, sq_sum, sum_sq,
+# self_compose, eq_quadratic
+
+# Test Cases (tc)
+# Format: a list of tuples where each tuple
+# gives an argument (or tuple of arguments)
+# and the expected return for that argument.
+greater_value_tc = [((a_quadratic, a_cubic, 3), 22),
+                    ((a_quadratic, a_cubic, 4), 49),
+                    ((a_quadratic, rat_power, 7), 134),
+                    ((a_quadratic, rat_power, 8), 181.01933598375618)]
+quad_and_cubic = greater_func(a_quadratic, a_cubic)
+quad_and_rat = greater_func(a_quadratic, rat_power)
+first_greater_func_tc =[(3, 22), (4, 49)]
+second_greater_func_tc = [(7, 134), (8, 181.01933598375618)]
+map_tc = [((square, [-2, -1, 0, 1, 2]), [4, 1, 0, 1, 4]),
+          ((mod_2, [2, 3, 11, 12, 24, 25]), [0, 1, 1, 0, 0, 1]),
+          ((square, []), [])]
+filter_tc = [((is_prime, [1, 2, 3, 4, 5, 6, 7, 8, 9, 100, 101, 102, 103]), [2, 3, 5, 7, 101, 103]),
+             ((is_thodd, [1, 2, 3, 4, 5, 6, 7, 8, 9]), [1, 4, 7]),
+             ((is_prime, []), [])]
+fold_tc = [((sum_two, [1, 2, 3, 4, 5, 6, 7, 8, 9]), 45),
+           ((longer, ['franklin', 'curtis', 'mason', 'junior']), 'franklin'),
+           ((longer, ['', '', '']), '')]
+repeat_tc = [((sqrt, 12, 3), 1.3642616018213658),
+             ((sqrt, 12, 12), 1.0006068507219845)]
+factorial_tc = [(1, 1), (5, 120)]
+harmonic_series_tc = [(1, 1.0), (10,2.9289682539682538), (100, 5.187377517639621)]
+find_min_tc = [([1], 1),
+               ([1, 1], 1),
+               ([3, -1, 2, 13, -12, 0], -12)]
+find_max_tc = [([1], 1),
+               ([1, 1], 1),
+               ([3, -1, 2, 13, -12, 0], 13)]
+flatten_tc = [([[]], []),
+              ([[1], [2, 3]], [1, 2, 3])]
+sq_sum_tc = [([1], 1),
+             ([2, 3], 25)]
+sum_sq_tc = [([1], 1),
+             ([2, 3], 13)]
+sixth_root = self_compose(sqrt, 3)
+self_compose_tc = [(2, 1.0905077326652577)]
+a_quad = eq_quadratic(1, 2, 3)
+b_quad = eq_quadratic(3, 0, 0)
+a_quad_tc = [(0, 3), (1, 6), (-1, 2)]
+b_quad_tc = [(4, 48), (-4, 48), (0, 0)]
+func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
+curry_w_and_x = curry_many(func_to_curry, 1, 2)
+curry_y = curry_many(curry_w_and_x, 4)
+curry_z = curry_many(curry_y, 8)
+curry_w_and_x_tc = [((1, 3), -48)]
+curry_y_tc = [(9, -345)]
+
+# Create Units
+# This block will cause a crash if you haven't created all of the required functions.
+# Format: Unit(func, name, cases, is_polyadic, is_mutator, test_type)
+# Test types: eq_comp, is_comp, eq_not_is, elems_comp
+greater_value_unit = Unit(greater_value, "greater value", greater_value_tc, True, False, approx_eq)
+first_greater_func_unit = Unit(quad_and_cubic, "greater func with a_quad and a_cubic", first_greater_func_tc, False, False, approx_eq)
+second_greater_func_unit = Unit(quad_and_rat, "greater_func with a_quad and rat_func", second_greater_func_tc, False, False, approx_eq)
+map_unit = Unit(map, "map", map_tc, True, False, eq_comp)
+filter_unit = Unit(filter, "filter", filter_tc, True, False, eq_comp)
+fold_unit = Unit(fold, "fold", fold_tc, True, False, eq_comp)
+repeat_unit = Unit(repeat, "repeat", repeat_tc, True, False, approx_eq)
+factorial_unit = Unit(factorial, "factorial", factorial_tc, False, False, eq_comp)
+harmonic_series_unit = Unit(harmonic_series, "harmonic series", harmonic_series_tc, False, False, approx_eq)
+find_min_unit = Unit(find_min, "find minimum", find_min_tc, False, False, eq_comp)
+find_max_unit = Unit(find_max, "find maximum", find_max_tc, False, False, eq_comp)
+flatten_unit = Unit(flatten, "flatten", flatten_tc, False, False, order_comp)
+sq_sum_unit = Unit(sq_sum, "square a sum", sq_sum_tc, False, False, eq_comp)
+sum_sq_unit = Unit(sum_sq, "sum of squares", sum_sq_tc, False, False, eq_comp)
+self_compose_unit = Unit(sixth_root, "self compose with f = sqrt, n = 3", self_compose_tc, False, False, approx_eq)
+a_quad_unit = Unit(a_quad, "eq_quadratic with a = 1, b = 2, c = 3", a_quad_tc, False, False, is_comp)
+b_quad_unit = Unit(b_quad, "eq_quadratic with a = 3, b = 0, c = 0", b_quad_tc, False, False, is_comp)
+first_curry_unit = Unit(curry_w_and_x, "curry w and x in f(w, x, y, z) = 2*w - 3*x + y**3 = 5*(z**2)", curry_w_and_x_tc, True, False, approx_eq)
+second_curry_unit = Unit(curry_y, "now curry y from the function curried above", curry_y_tc, False, False, approx_eq)
+
+# Unit Test List
+units = [greater_value_unit, first_greater_func_unit, second_greater_func_unit, map_unit, filter_unit, fold_unit,
+         repeat_unit, factorial_unit, harmonic_series_unit, find_min_unit, find_max_unit, flatten_unit, sq_sum_unit,
+         sum_sq_unit, self_compose_unit, a_quad_unit, b_quad_unit, first_curry_unit, second_curry_unit]
+
+# Create Unit Test
+hof_unit_test = UnitTest("Higher Order Functions Unit Test", units)
+
+# Test!
+hof_unit_test.run_test()
