@@ -1,4 +1,4 @@
-# 3/29/20 @ 1:26 p.m.
+# 3/30/21 @ 9:04 a.m.
 
 #Helper Functions
 import operator as op
@@ -187,18 +187,26 @@ sq_sum_tc = [([1], 1),
              ([2, 3], 25)]
 sum_sq_tc = [([1], 1),
              ([2, 3], 13)]
-sixth_root = self_compose(sqrt, 3)
 self_compose_tc = [(2, 1.0905077326652577)]
-a_quad = eq_quadratic(1, 2, 3)
-b_quad = eq_quadratic(3, 0, 0)
 a_quad_tc = [(0, 3), (1, 6), (-1, 2)]
 b_quad_tc = [(4, 48), (-4, 48), (0, 0)]
 func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
-curry_w_and_x = curry_many(func_to_curry, 1, 2)
-curry_y = curry_many(curry_w_and_x, 4)
-curry_z = curry_many(curry_y, 8)
 curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
+
+# The unit test should not crash if self_compose, etc. exist:
+try:
+    sixth_root = self_compose(sqrt, 3)
+    a_quad = eq_quadratic(1, 2, 3)
+    b_quad = eq_quadratic(3, 0, 0)
+    curry_w_and_x = curry_many(func_to_curry, 1, 2)
+    curry_y = curry_many(curry_w_and_x, 4)
+    curry_z = curry_many(curry_y, 8)
+except:
+    place_holder = lambda : None
+    sixth_root = place_holder
+    a_quad = b_quad = place_holder
+    curry_w_and_x = curry_y = curry_z = place_holder
 
 # Create Units
 # This block will cause a crash if you haven't created all of the required functions.
