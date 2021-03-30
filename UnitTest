@@ -1,4 +1,4 @@
-# 3/30/21 @ 9:04 a.m.
+# 3/30/21 @ 9:37 a.m.
 
 #Helper Functions
 import operator as op
@@ -94,7 +94,6 @@ class UnitTest():
         total_score = 0
         pts_lost_dict = {}
         for unit in self.units:
-            print(unit.name)
             pts_lost_dict[unit.name] = 0
             test_file.write("\nFunction: " + unit.name + "\n")
             for case in unit.cases:
