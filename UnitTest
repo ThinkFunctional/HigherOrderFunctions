@@ -193,18 +193,22 @@ func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
 curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
 
-# The unit test should not crash if self_compose, etc. exist:
+# The unit test should not crash if self_compose, etc. (those functions that return functions) exist:
+place_holder = lambda : None
 try:
     sixth_root = self_compose(sqrt, 3)
+except:
+    sixth_root = place_holder
+try:
     a_quad = eq_quadratic(1, 2, 3)
     b_quad = eq_quadratic(3, 0, 0)
+except:
+    a_quad = b_quad = place_holder
+try:
     curry_w_and_x = curry_many(func_to_curry, 1, 2)
     curry_y = curry_many(curry_w_and_x, 4)
     curry_z = curry_many(curry_y, 8)
 except:
-    place_holder = lambda : None
-    sixth_root = place_holder
-    a_quad = b_quad = place_holder
     curry_w_and_x = curry_y = curry_z = place_holder
 
 # Create Units
