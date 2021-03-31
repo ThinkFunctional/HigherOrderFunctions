@@ -1,4 +1,4 @@
-# 3/30/21 @ 1:28 p.m.
+# 3/31/21 @ 9:57 a.m.
 
 #Helper Functions
 import operator as op
@@ -31,6 +31,8 @@ def eq_not_is(an_obj, another_obj):
     return (an_obj == another_obj) and not(an_obj is another_obj)
 
 def approx_eq(expected, actual):
+    if actual == None:
+        return False
     if isinstance(expected, (int, float, complex)) and not isinstance(expected, bool):
         return abs(expected - actual) < 0.000001
     return False
