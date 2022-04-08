@@ -1,5 +1,5 @@
 # Higher Order Functions Unit Test
-# 1.28.2022 @ 8:59 am
+# Time: 4.8.2022 @ 2:07 pm
 
 # Helper Functions
 import operator as op
@@ -28,8 +28,8 @@ def order_comp(a_list, b_list):
             return False
     return True
 
-def eq_not_is(an_obj, another_obj):
-    return (an_obj == another_obj) and not(an_obj is another_obj)
+def eq_not_is(expected, actual):
+    return (expected == actual) and not(expected is actual)
 
 def approx_eq(expected, actual):
     if isinstance(expected, (int, float, complex)):
@@ -37,6 +37,11 @@ def approx_eq(expected, actual):
             return False
         return abs(expected - actual) < 0.000001
     return False
+
+def is_among(expected, actual):
+    # Here expected is a sequence of correct forms for the output.
+    # Return True if actual is in expected.
+    return actual in expected
 
 def build_arg_str(args, is_poly):
     arg_str = ""
@@ -149,6 +154,7 @@ class UnitTest():
             total_score += unit.score
 
         self.score = total_score
+        print("Final score:", self.score, 'out of', self.num_tests, end = '.\n')
         test_file.write("\nSummary:")
         if self.score < self.num_tests:
             for name in pts_lost_dict:
@@ -202,6 +208,10 @@ b_quad_tc = [(4, 48), (-4, 48), (0, 0)]
 func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
 curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
+cubic = make_poly(2, 3, 5)
+cubic_tc = [(13, 382), (-13, 304)]
+quintic = make_poly(7, 11, 0, -3, 5)
+quintic_tc = [(0, 5), (-1, 4), (101, 739755820)]
 
 # The unit test should not crash if self_compose, etc. (those functions that return functions) exist:
 place_holder = lambda : None
@@ -244,11 +254,14 @@ a_quad_unit = Unit(a_quad, "eq_quadratic with a = 1, b = 2, c = 3", a_quad_tc, F
 b_quad_unit = Unit(b_quad, "eq_quadratic with a = 3, b = 0, c = 0", b_quad_tc, False, False, is_comp)
 first_curry_unit = Unit(curry_w_and_x, "curry w and x in f(w, x, y, z) = 2*w - 3*x + y**3 + 5*(z**2)", curry_w_and_x_tc, True, False, approx_eq)
 second_curry_unit = Unit(curry_y, "now curry y from the function curried above", curry_y_tc, False, False, approx_eq)
+cubic_unit = Unit(cubic, "polynomial function 2*x**2 + 3*x + 5", cubic_tc, False, False, eq_comp)
+quintic_unit = Unit(quintic, "polynomial function 7*x**4 + 11*x**3 - 3*x + 5", quintic_tc, False, False, eq_comp)
 
 # Unit Test List
 units = [greater_value_unit, first_greater_func_unit, second_greater_func_unit, map_unit, filter_unit, fold_unit,
          repeat_unit, factorial_unit, harmonic_series_unit, find_min_unit, find_max_unit, flatten_unit, sq_sum_unit,
-         sum_sq_unit, self_compose_unit, a_quad_unit, b_quad_unit, first_curry_unit, second_curry_unit]
+         sum_sq_unit, self_compose_unit, a_quad_unit, b_quad_unit, first_curry_unit, second_curry_unit,
+         cubic_unit, quintic_unit]
 
 # Create Unit Test
 hof_unit_test = UnitTest("Higher Order Functions Unit Test", units)
