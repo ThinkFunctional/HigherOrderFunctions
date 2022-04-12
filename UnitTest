@@ -1,5 +1,5 @@
 # Higher Order Functions Unit Test
-# Time: 4.8.2022 @ 2:07 pm
+# Time: 4.12.2022 @ 8:59 am
 
 # Helper Functions
 import operator as op
@@ -208,9 +208,7 @@ b_quad_tc = [(4, 48), (-4, 48), (0, 0)]
 func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
 curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
-cubic = make_poly(2, 3, 5)
 cubic_tc = [(13, 382), (-13, 304)]
-quintic = make_poly(7, 11, 0, -3, 5)
 quintic_tc = [(0, 5), (-1, 4), (101, 739755820)]
 
 # The unit test should not crash if self_compose, etc. (those functions that return functions) exist:
@@ -230,6 +228,13 @@ try:
     curry_z = curry_many(curry_y, 8)
 except:
     curry_w_and_x = curry_y = curry_z = place_holder
+try:
+    cubic = poly_maker(2, 3, 5)
+    quintic = poly_maker(7, 11, 0, -3, 5)
+except:
+    cubic = quintic = place_holder
+
+
 
 # Create Units
 # This block will cause a crash if you haven't created all of the required functions.
