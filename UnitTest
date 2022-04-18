@@ -1,5 +1,5 @@
 # Higher Order Functions Unit Test
-# Time: 4.12.2022 @ 8:59 am
+# Time: 4.18.2022 @ 7:51 am
 
 # Helper Functions
 import operator as op
@@ -210,6 +210,9 @@ curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
 cubic_tc = [(13, 382), (-13, 304)]
 quintic_tc = [(0, 5), (-1, 4), (101, 739755820)]
+degree_seven = lambda x: 3*x**7 - 17*x**6 + 5*x**5 - 13*x**4 + 7*x**3 - 11*x**2 + x - 1
+degree_33 = lambda x:33*x**33 + 29*x**29 - 1
+find_degree_tc = [(degree_seven, 7), (degree_33, 33)]
 
 # The unit test should not crash if self_compose, etc. (those functions that return functions) exist:
 place_holder = lambda : None
@@ -233,8 +236,6 @@ try:
     quintic = poly_maker(7, 11, 0, -3, 5)
 except:
     cubic = quintic = place_holder
-
-
 
 # Create Units
 # This block will cause a crash if you haven't created all of the required functions.
@@ -261,12 +262,13 @@ first_curry_unit = Unit(curry_w_and_x, "curry w and x in f(w, x, y, z) = 2*w - 3
 second_curry_unit = Unit(curry_y, "now curry y from the function curried above", curry_y_tc, False, False, approx_eq)
 cubic_unit = Unit(cubic, "polynomial function 2*x**2 + 3*x + 5", cubic_tc, False, False, eq_comp)
 quintic_unit = Unit(quintic, "polynomial function 7*x**4 + 11*x**3 - 3*x + 5", quintic_tc, False, False, eq_comp)
+find_degree_unit = Unit(find_degree, "find degree", find_degree_tc, False, False, eq_comp)
 
 # Unit Test List
 units = [greater_value_unit, first_greater_func_unit, second_greater_func_unit, map_unit, filter_unit, fold_unit,
          repeat_unit, factorial_unit, harmonic_series_unit, find_min_unit, find_max_unit, flatten_unit, sq_sum_unit,
          sum_sq_unit, self_compose_unit, a_quad_unit, b_quad_unit, first_curry_unit, second_curry_unit,
-         cubic_unit, quintic_unit]
+         cubic_unit, quintic_unit, find_degree_unit]
 
 # Create Unit Test
 hof_unit_test = UnitTest("Higher Order Functions Unit Test", units)
