@@ -1,11 +1,29 @@
-# Higher Order Functions Unit Test
-# Time: 4.18.2022 @ 7:51 am
+# Name: Higher Order Functions Unit Test
+# Time: 4.3.2023 @ 7:47 am
 
 # Helper Functions
 import operator as op
+import traceback
+from datetime import datetime
 
 eq_comp = op.__eq__
 is_comp = op.is_
+
+def perm_eq(p1, p2):
+    if not isinstance(p1, str) or not isinstance(p2, str):
+        return False
+    def to_dct(perm):
+        split_perm = perm[1:len(perm)-1].split(')(')
+        dct = {}
+        for chunk in split_perm:
+            n = len(chunk)
+            for i in range(n):
+                if i < n - 1:
+                    dct[chunk[i]] = chunk[i+1]
+                else:
+                    dct[chunk[i]] = chunk[0]
+        return dct
+    return(to_dct(p1) == to_dct(p2))
 
 def elems_comp(a_list, b_list):
     # Return true if every element of a is an element of b and vice versa, False otherwise
@@ -15,7 +33,7 @@ def elems_comp(a_list, b_list):
         if elem not in b_list:
             return False
     for elem in b_list:
-        if elem not in a_list:
+        if elem not in b_list:
             return False
     return True
 
@@ -28,8 +46,8 @@ def order_comp(a_list, b_list):
             return False
     return True
 
-def eq_not_is(expected, actual):
-    return (expected == actual) and not(expected is actual)
+def eq_not_is(an_obj, another_obj):
+    return (an_obj == another_obj) and not(an_obj is another_obj)
 
 def approx_eq(expected, actual):
     if isinstance(expected, (int, float, complex)):
@@ -37,11 +55,6 @@ def approx_eq(expected, actual):
             return False
         return abs(expected - actual) < 0.000001
     return False
-
-def is_among(expected, actual):
-    # Here expected is a sequence of correct forms for the output.
-    # Return True if actual is in expected.
-    return actual in expected
 
 def build_arg_str(args, is_poly):
     arg_str = ""
@@ -66,7 +79,7 @@ def build_arg_str(args, is_poly):
 
 class Unit():
 
-    def __init__(self, func, name, cases, is_polyadic, is_mutator, test_type):
+    def __init__(self, func, name, cases, is_polyadic, is_mutator, test_type, extra_credit = False):
         # If the function is polyadic, we need to * the input so that it unpacks.
         # If the function is a mutator, we don't ask for its return value.
         # Instead we compare the input after the function is called to the correct mutated value.
@@ -84,6 +97,7 @@ class Unit():
         self.is_mutator = is_mutator
         self.test_type = test_type
         self.score = 0
+        self.extra_credit = extra_credit
 
     def add_test(self, new_test):
         self.cases.append(new_test)
@@ -99,13 +113,21 @@ class UnitTest():
     def run_test(self):
         test_file = open("report.txt", "w")
         test_file.write(self.name + "\n")
+        now = datetime.now()
+        dt_string = now.strftime("Date: %m/%d/%Y, Time: %H:%M:%S")
+        test_file.write(dt_string + "\n")
         total_score = 0
         pts_lost_dict = {}
         for unit in self.units:
             pts_lost_dict[unit.name] = 0
-            test_file.write("\nFunction: \"" + unit.name + "\"\n")
+            if unit.extra_credit:
+                header_str = "\nFunction: \"" + unit.name + "\"" + "(extra credit)\n"
+            else:
+                header_str = "\nFunction: \"" + unit.name + "\"\n"
+            test_file.write(header_str)
             for case in unit.cases:
-                self.num_tests += 1
+                if not unit.extra_credit:
+                    self.num_tests += 1
                 arg = case[0]
                 expected_value = case[1]
                 arg_str = build_arg_str(arg, unit.is_polyadic)
@@ -118,21 +140,16 @@ class UnitTest():
                         actual_value = unit.func(*arg)
                     else:
                         actual_value = unit.func(arg) 
-                except Exception as ex:
-                    if isinstance(expected_value, str)  and "Error" in expected_value:
-                        if type(ex).__name__ == expected_value:
-                            test_file.write("Function crashed as expected and error of right type! +1\n")
-                            unit.score += 1
-                        else:
-                            test_file.write("Function crashed as expected but error not of right type! No point!\n")
-                            pts_lost_dict[unit.name] += 1
-                    else:
-                        test_file.write("Unexpected crash! No point! Error type: " + type(ex).__name__ + "\n")
-                        pts_lost_dict[unit.name] += 1
+                except Exception as err:
+                    # Do not print error if function hasn't been implemented (no arguments defined but passing args error).
+					# This avoids giving students a wall of errors when starting project.
+                    if "takes 0 positional arguments but" not in str(err):
+                        # Print error to console
+                        traceback.print_exc()
+                    test_file.write("Crash! No points!\n")
+                    pts_lost_dict[unit.name] += 1
                 else:
-                    if isinstance(expected_value, str) and "Error" in expected_value:
-                        test_file.write("Function should have crashed but did not! No point!\n")
-                    elif not unit.is_mutator:
+                    if not unit.is_mutator:
                         if unit.test_type(expected_value, actual_value):
                             test_file.write("  Return value correct! +1\n")
                             unit.score += 1
@@ -154,7 +171,6 @@ class UnitTest():
             total_score += unit.score
 
         self.score = total_score
-        print("Final score:", self.score, 'out of', self.num_tests, end = '.\n')
         test_file.write("\nSummary:")
         if self.score < self.num_tests:
             for name in pts_lost_dict:
@@ -163,7 +179,16 @@ class UnitTest():
                     test_file.write("\nFunction \"" + name + "\", points lost " + str(pts_lost) + ".")
         else:
             test_file.write(" Perfection!")
-        test_file.write("\n\nFinal Score: " + str(self.score) + "/" + str(self.num_tests))
+        summary = "Final Score: " + str(self.score) + "/" + str(self.num_tests)
+        grade = round((self.score / self.num_tests) * 100, 1)
+        summary += "\nGrade: " + str(grade) + "%"
+        test_file.write("\n\n" + summary)
+        print(summary)
+
+# Function List (13 total)
+# map, filter, fold, repeat, factorial, harmonic_series
+# find_min, find_max, flatten, sq_sum, sum_sq,
+# self_compose, eq_quadratic
 
 # Test Cases (tc)
 # Format: a list of tuples where each tuple
@@ -208,11 +233,9 @@ b_quad_tc = [(4, 48), (-4, 48), (0, 0)]
 func_to_curry = lambda w, x, y, z: 2*w - 3*x + y**3 - 5*(z**2)
 curry_w_and_x_tc = [((1, 3), -48)]
 curry_y_tc = [(9, -345)]
-cubic_tc = [(13, 382), (-13, 304)]
-quintic_tc = [(0, 5), (-1, 4), (101, 739755820)]
-degree_seven = lambda x: 3*x**7 - 17*x**6 + 5*x**5 - 13*x**4 + 7*x**3 - 11*x**2 + x - 1
-degree_33 = lambda x:33*x**33 + 29*x**29 - 1
-find_degree_tc = [(degree_seven, 7), (degree_33, 33)]
+a_poly_tc = [(0, -2), (12, 10)]
+b_poly_tc = [(0, 1), (-12, 7369)]
+find_degree_tc = [(lambda x: 5*x**5 - 3*x**3 + x + 1, 5)]
 
 # The unit test should not crash if self_compose, etc. (those functions that return functions) exist:
 place_holder = lambda : None
@@ -232,10 +255,10 @@ try:
 except:
     curry_w_and_x = curry_y = curry_z = place_holder
 try:
-    cubic = poly_maker(2, 3, 5)
-    quintic = poly_maker(7, 11, 0, -3, 5)
+    a_poly = poly_maker(1, -2)
+    b_poly = poly_maker(-4, 3, -2, 1)
 except:
-    cubic = quintic = place_holder
+    a_poly = b_poly = place_holder
 
 # Create Units
 # This block will cause a crash if you haven't created all of the required functions.
@@ -260,15 +283,15 @@ a_quad_unit = Unit(a_quad, "eq_quadratic with a = 1, b = 2, c = 3", a_quad_tc, F
 b_quad_unit = Unit(b_quad, "eq_quadratic with a = 3, b = 0, c = 0", b_quad_tc, False, False, is_comp)
 first_curry_unit = Unit(curry_w_and_x, "curry w and x in f(w, x, y, z) = 2*w - 3*x + y**3 + 5*(z**2)", curry_w_and_x_tc, True, False, approx_eq)
 second_curry_unit = Unit(curry_y, "now curry y from the function curried above", curry_y_tc, False, False, approx_eq)
-cubic_unit = Unit(cubic, "polynomial function 2*x**2 + 3*x + 5", cubic_tc, False, False, eq_comp)
-quintic_unit = Unit(quintic, "polynomial function 7*x**4 + 11*x**3 - 3*x + 5", quintic_tc, False, False, eq_comp)
+a_poly_unit = Unit(a_poly, "poly_maker with inputs 1, -2", a_poly_tc, False, False, eq_comp)
+b_poly_unit = Unit(b_poly, "poly_maker with inputs -4, 3, -2, 1", b_poly_tc, False, False, eq_comp)
 find_degree_unit = Unit(find_degree, "find degree", find_degree_tc, False, False, eq_comp)
 
 # Unit Test List
 units = [greater_value_unit, first_greater_func_unit, second_greater_func_unit, map_unit, filter_unit, fold_unit,
          repeat_unit, factorial_unit, harmonic_series_unit, find_min_unit, find_max_unit, flatten_unit, sq_sum_unit,
          sum_sq_unit, self_compose_unit, a_quad_unit, b_quad_unit, first_curry_unit, second_curry_unit,
-         cubic_unit, quintic_unit, find_degree_unit]
+         a_poly_unit, b_poly_unit, find_degree_unit]
 
 # Create Unit Test
 hof_unit_test = UnitTest("Higher Order Functions Unit Test", units)
